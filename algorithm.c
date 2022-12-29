@@ -10,10 +10,17 @@ static void *merge(void *left, size_t llen, void *right, size_t rlen, size_t siz
     size_t i, j, k;
     void *merged, *lval, *rval;
     merged = malloc((llen + rlen) * size);
-    i = j = k = 0;
-    while (i < llen && j < rlen) {
-        lval = ((char *) left) + i * size;
-        rval = ((char *) right) + j * size;
+    i = j = 0;
+    /* While there are elements in both the left and right
+       subarrays to process, compare elements from both,
+       and decide which to add to the new merged array copy. */
+    for (k = 0; i < llen && j < rlen; ++k) {
+        lval = ((char *) left) + i * size;      // data[i]
+        rval = ((char *) right) + j * size;     // data[j]
+        /* If data[i] < data[j], then advance one element forward
+           on the left subarray (by incrementing the index), and
+           continue the loop. Otherwise, advance one element forward
+           on the right subarray. */
         if (cmp(lval, rval) < 0) {
             memcpy(((char *) merged) + k * size, lval, size);
             ++i;
@@ -21,10 +28,9 @@ static void *merge(void *left, size_t llen, void *right, size_t rlen, size_t siz
             memcpy(((char *) merged) + k * size, rval, size);
             ++j;
         }
-        ++k;
     }
     /* While there are elements left to process in the left
-       array, add them to the merged array.*/
+       array, add them to the merged array. */
     while (i < llen) {
         lval = ((char *) left) + i * size;
         memcpy(((char *) merged) + k * size, lval, size);
@@ -71,15 +77,14 @@ void *mergesort(const void *data, size_t len, size_t size, cmpfunc cmp) {
 
 void bubblesort(void *data, size_t len, size_t size, cmpfunc cmp) {
     size_t i, j;
-    int key;
     void *a, *b, *tmp;
     tmp = malloc(size);
     for (i = 1; i < len; ++i) {
         for (j = 0; j < len - 1; ++j) {
             a = ((char *) data) + j * size;
             b = ((char *) data) + (j + 1) * size;
-            key = cmp(a, b);
-            if (key > 0)
+            // If data[j] < data[j+1], then swap data[j] and data[j+1].
+            if (cmp(a, b) > 0)
                 VOIDSWAP(tmp, a, b, size);
         }
     }
@@ -95,12 +100,14 @@ void selectsort(void *data, size_t len, size_t size, cmpfunc cmp) {
         for (i = j + 1; i < len; ++i) {
             a = ((char *) data) + i * size;
             b = ((char *) data) + min * size;
+            // If data[i] < data[min], then min = i.
             if (cmp(a, b) < 0)
                 min = i;
         }
         if (min != j) {
             a = ((char *) data) + j * size;
             b = ((char *) data) + min * size;
+            // Swap data[min] and data[j].
             VOIDSWAP(tmp, a, b, size);
         }
     }
@@ -161,7 +168,9 @@ void quicksort(void *data, size_t len, size_t size, cmpfunc cmp) {
 
 // Binary Heap Implementation.
 
-#define PARENT(i) ((i - 1) / 2)
+// Reference: https://en.wikipedia.org/wiki/Heapsort
+
+#define PARENT(i) ((i-1) / 2)
 #define LEFTCHILD(i) (2*i + 1)
 #define RIGHTCHILD(i) (2*i + 2)
 
@@ -221,15 +230,11 @@ void heapsort(void *data, size_t len, size_t size, cmpfunc cmp) {
     for (end = len - 1; end > 0; --end) {
         a = ((char *) data);
         b = ((char *) data) + end * size;
-        VOIDSWAP(tmp, a, b, size);
+        VOIDSWAP(tmp, a, b, size);  // Swap data[0] and data[end].
         heapify(data, end, size, cmp);
     }
     free(tmp);
 }
-
-#undef PARENT
-#undef LEFTCHILD
-#undef RIGHTCHILD
 
 int64_t binsearch(const void *data, size_t len, size_t size, cmpfunc cmp, const void *value) {
     size_t lo, hi, mid;
@@ -252,6 +257,8 @@ int64_t binsearch(const void *data, size_t len, size_t size, cmpfunc cmp, const 
 }
 
 static size_t find_index(const void *data, size_t len, size_t size, cmpfunc cmp, const void *value) {
+    /* The following code is based on the bisect module
+       in the Python Standard Library (see bisect_right). */
     size_t lo, hi, mid;
     int key;
     void *item;
@@ -275,17 +282,23 @@ void binsert(void *data, size_t *len, size_t size, cmpfunc cmp, const void *valu
     index = find_index(data, *len, size, cmp, value);
     src = ((char *) data) + index * size;
     dst = ((char *) data) + (index + 1) * size;
+    /* Move all elements at the index or after one position
+       to the right, and then insert the specified element. */
     memmove(dst, src, ((*len)++ - index) * size);
+    memcpy(((char *) data) + index * size, value, size);
 }
 
 void binserts(void *data, size_t *len, size_t size, cmpfunc cmp, const void *value) {
-    int64_t index;
+    size_t index;
     void *src, *dst;
     index = find_index(data, *len, size, cmp, value);
     src = ((char *) data) + index * size;
     dst = ((char *) data) + (index + 1) * size;
-    data = realloc(data, ((*len) + 1) * size);
+    data = realloc(data, ((*len) + 1) * size);  // Reallocate for additional element.
+    /* Move all elements at the index or after one position
+       to the right, and then insert the specified element. */
     memmove(dst, src, ((*len)++ - index) * size);
+    memcpy(((char *) data) + index * size, value, size);
 }
 
 void binremove(void *data, size_t *len, size_t size, cmpfunc cmp, const void *value) {
@@ -296,6 +309,8 @@ void binremove(void *data, size_t *len, size_t size, cmpfunc cmp, const void *va
         return;
     src = ((char *) data) + (index + 1) * size;
     dst = ((char *) data) + index * size;
+    /* Moving elements one position to the left
+       automatically overwrites the old value. */
     memmove(dst, src, ((*len)-- - index - 1) * size);
 }
 
@@ -337,5 +352,3 @@ CMPFUNC_INIT(cmpus, unsigned short);
 CMPFUNC_INIT(cmpu, unsigned int);
 CMPFUNC_INIT(cmpul, unsigned long);
 CMPFUNC_INIT(cmpull, unsigned long long);
-
-#undef CMPFUNC_INIT
