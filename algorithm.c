@@ -6,7 +6,65 @@
     memcpy(y, tmp, size);          \
 }
 
+/* Including <stdlib.h> defines both min and max macros,
+   so undefining them allows the appropriate function
+   names to be used. */
+#undef min
+#undef max
+
+void *min(void *data, size_t len, size_t size, cmpfunc cmp) {
+    size_t i;
+    void *tmp, *min_val;
+    min_val = ((char *) data);  // Assume the first item in the array is the minimum.
+    for (i = 1; i < len; ++i) {
+        tmp = ((char *) data) + i * size;
+        min_val = (cmp(tmp, min_val) < 0) ? tmp : min_val;
+    }
+    return min_val;
+}
+
+void *max(void *data, size_t len, size_t size, cmpfunc cmp) {
+    size_t i;
+    void *tmp, *max_val;
+    max_val = ((char *) data);  // Assume the first item in the array is the maximum.
+    for (i = 1; i < len; ++i) {
+        tmp = ((char *) data) + i * size;
+        max_val = (cmp(tmp, max_val) > 0) ? tmp : max_val;
+    }
+    return max_val;
+}
+
+void *min_k(void *data, size_t len, size_t size, keyfunc key) {
+    size_t i;
+    void *tmp, *min_val;
+    min_val = ((char *) data);  // Assume the first item in the array is the minimum.
+    for (i = 1; i < len; ++i) {
+        tmp = ((char *) data) + i * size;
+        min_val = (key(tmp) < key(min_val)) ? tmp : min_val;
+    }
+    return min_val;
+}
+
+void *max_k(void *data, size_t len, size_t size, keyfunc key) {
+    size_t i;
+    void *tmp, *max_val;
+    max_val = ((char *) data);  // Assume the first item in the array is the maximum.
+    for (i = 1; i < len; ++i) {
+        tmp = ((char *) data) + i * size;
+        max_val = (key(tmp) > key(max_val)) ? tmp : max_val;
+    }
+    return max_val;
+}
+
 static void *merge(void *left, size_t llen, void *right, size_t rlen, size_t size, cmpfunc cmp) {
+    /* The code below was partially borrowed from https://youtu.be/4VqmGXwpLqc
+       with a few modifications.
+
+       Namely, instead of removing items from either the left or right arrays,
+       (which would incur a cost that is linear to the size of the array itself
+       since a call to memmove would be made), an index was used and advanced
+       based on which element has been processed. This is equivalent since the
+       order of the remaining elements in the array don't change. */
     size_t i, j, k;
     void *merged, *lval, *rval;
     merged = malloc((llen + rlen) * size);
@@ -15,8 +73,8 @@ static void *merge(void *left, size_t llen, void *right, size_t rlen, size_t siz
        subarrays to process, compare elements from both,
        and decide which to add to the new merged array copy. */
     for (k = 0; i < llen && j < rlen; ++k) {
-        lval = ((char *) left) + i * size;      // data[i]
-        rval = ((char *) right) + j * size;     // data[j]
+        lval = ((char *) left) + i * size;      //  left[i]
+        rval = ((char *) right) + j * size;     // right[j]
         /* If data[i] < data[j], then advance one element forward
            on the left subarray (by incrementing the index), and
            continue the loop. Otherwise, advance one element forward
@@ -63,7 +121,7 @@ void *mergesort(const void *data, size_t len, size_t size, cmpfunc cmp) {
     // Calculate left and right array lengths.
     mid = len / 2;
     llen = mid;
-    rlen = mid + (len & 1);
+    rlen = mid + (len & 1);  // Right subarray is bigger if length is odd.
     // Make left and right subarray copies.
     left = malloc(llen * size);
     right = malloc(rlen * size);
@@ -81,8 +139,8 @@ void bubblesort(void *data, size_t len, size_t size, cmpfunc cmp) {
     tmp = malloc(size);
     for (i = 1; i < len; ++i) {
         for (j = 0; j < len - 1; ++j) {
-            a = ((char *) data) + j * size;
-            b = ((char *) data) + (j + 1) * size;
+            a = ((char *) data) + j * size;        // data[j]
+            b = ((char *) data) + (j + 1) * size;  // data[j+1]
             // If data[j] < data[j+1], then swap data[j] and data[j+1].
             if (cmp(a, b) > 0)
                 VOIDSWAP(tmp, a, b, size);
@@ -120,13 +178,13 @@ void insertsort(void *data, size_t len, size_t size, cmpfunc cmp) {
     tmp = malloc(size);
     for (i = 1; i < len; ++i) {
         j = i;
-        a = ((char *) data) + (j - 1) * size;
-        b = ((char *) data) + j * size;
+        a = ((char *) data) + (j - 1) * size;      // data[j-1]
+        b = ((char *) data) + j * size;            // data[j]
         while (j > 0 && cmp(a, b) > 0) {
             VOIDSWAP(tmp, a, b, size);
             --j;
-            a = ((char *) data) + (j - 1) * size;
-            b = ((char *) data) + j * size;
+            a = ((char *) data) + (j - 1) * size;  // data[j-1]
+            b = ((char *) data) + j * size;        // data[j]
         }
     }
     free(tmp);
@@ -139,15 +197,17 @@ static size_t partition(void *data, size_t len, size_t size, cmpfunc cmp, int lo
     i = lo - 1;
     tmp = malloc(size);
     for (j = lo; j < hi; ++j) {
-        a = ((char *) data) + j * size;
+        a = ((char *) data) + j * size;        // data[j]
+        /* If data[j] is less than or equal to the pivot element,
+           then swap data[i+1] and data[j]. */
         if (cmp(a, pivot) <= 0) {
-            a = ((char *) data) + ++i * size;
-            b = ((char *) data) + j * size;
+            a = ((char *) data) + ++i * size;  // data[i+1]
+            b = ((char *) data) + j * size;    // data[j]
             VOIDSWAP(tmp, a, b, size);
         }
     }
-    a = ((char *) data) + ++i * size;
-    b = ((char *) data) + hi * size;
+    a = ((char *) data) + ++i * size;          // data[i+1]
+    b = ((char *) data) + hi * size;           // data[hi]
     VOIDSWAP(tmp, a, b, size);
     free(tmp);
     return i;
@@ -199,17 +259,21 @@ void siftdown(void *data, size_t len, size_t size, cmpfunc cmp, size_t start, si
     while (LEFTCHILD(root) <= end) {
         child = LEFTCHILD(root);
         swap = root;
-        a = ((char *) data) + swap * size;
-        b = ((char *) data) + child * size;
+        a = ((char *) data) + swap * size;        // data[swap]
+        b = ((char *) data) + child * size;       // data[child]
+        // If data[swap] < data[child], then swap = child.
         if (cmp(a, b) < 0)
             swap = child;
-        b = ((char *) data) + (child + 1) * size;
+        b = ((char *) data) + (child + 1) * size; // data[child+1]
+        /* If child + 1 <= end and data[swap] < data[child],
+           then swap = child + 1 */
         if (child + 1 <= end && cmp(a, b) < 0)
             swap = child + 1;
         if (swap == root)
             break;
         a = ((char *) data) + root * size;
         b = ((char *) data) + swap * size;
+        // Swap data[root] and data[swap].
         VOIDSWAP(tmp, a, b, size);
         root = swap;
     }
@@ -226,17 +290,19 @@ void heapsort(void *data, size_t len, size_t size, cmpfunc cmp) {
     size_t end;
     void *a, *b, *tmp;
     heapify(data, len, size, cmp);
+    a = ((char *) data);
     tmp = malloc(size);
     for (end = len - 1; end > 0; --end) {
-        a = ((char *) data);
-        b = ((char *) data) + end * size;
-        VOIDSWAP(tmp, a, b, size);  // Swap data[0] and data[end].
+        b = ((char *) data) + end * size;   // data[end]
+        VOIDSWAP(tmp, a, b, size);          // Swap data[0] and data[end].
         heapify(data, end, size, cmp);
     }
     free(tmp);
 }
 
 int64_t binsearch(const void *data, size_t len, size_t size, cmpfunc cmp, const void *value) {
+    /* The following code comes from K & R The C Programming Language,
+       with a few modifications. */
     size_t lo, hi, mid;
     int key;
     void *item;
@@ -276,6 +342,8 @@ static size_t find_index(const void *data, size_t len, size_t size, cmpfunc cmp,
     return lo;
 }
 
+// The code for the insertion functions are my own.
+
 void binsert(void *data, size_t *len, size_t size, cmpfunc cmp, const void *value) {
     size_t index;
     void *src, *dst;
@@ -309,8 +377,8 @@ void binremove(void *data, size_t *len, size_t size, cmpfunc cmp, const void *va
         return;
     src = ((char *) data) + (index + 1) * size;
     dst = ((char *) data) + index * size;
-    /* Moving elements one position to the left
-       automatically overwrites the old value. */
+    /* Moving elements one position to the left automatically
+       overwrites the old value. */
     memmove(dst, src, ((*len)-- - index - 1) * size);
 }
 
@@ -352,3 +420,10 @@ CMPFUNC_INIT(cmpus, unsigned short);
 CMPFUNC_INIT(cmpu, unsigned int);
 CMPFUNC_INIT(cmpul, unsigned long);
 CMPFUNC_INIT(cmpull, unsigned long long);
+
+/* It might be worth redefining a key function to return
+   a 64-bit integer to allow for all types to work. */
+
+int keyi(const void *x) {
+    return *(int *) x;
+}

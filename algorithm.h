@@ -11,6 +11,25 @@
 typedef int cmpfunc(const void *, const void *);  // Comparison function.
 typedef int keyfunc(const void *);                // Key function.
 
+// Min/Max Functions.
+
+#undef min
+#undef max
+
+/* Find the minimum value in an array. */
+void *min(void *data, size_t len, size_t size, cmpfunc cmp);
+
+/* Find the maximum value in an array. */
+void *max(void *data, size_t len, size_t size, cmpfunc cmp);
+
+/* Find the minimum value in an array when given a key function. */
+void *min_k(void *data, size_t len, size_t size, keyfunc key);
+
+/* Find the maximum value in an array when given a key function. */
+void *max_k(void *data, size_t len, size_t size, keyfunc key);
+
+// Non-inplace Sorting Algorithms.
+
 /* Merge sort algorithm (Not inplace). */
 void *mergesort(const void *data, size_t len, size_t size, cmpfunc cmp);
 
@@ -30,7 +49,10 @@ void quicksort(void *data, size_t len, size_t size, cmpfunc cmp);
 
 // Binary Heap Algorithms.
 
+/* Moves a value up in the heap. */
 void siftup(void *data, size_t len, size_t size, cmpfunc cmp, size_t start, size_t end);
+
+/* Moves a value down in the heap. */
 void siftdown(void *data, size_t len, size_t size, cmpfunc cmp, size_t start, size_t end);
 
 /* Converts an array to a binary heap (changes ordering). */
@@ -93,4 +115,7 @@ int cmpul(const void *a, const void *b);
 
 /* Compare unsigned long long. */
 int cmpull(const void *a, const void *b);
+
+/* Integer key function. */
+int keyi(const void *a);
 #endif  // ALGORITHM_H
