@@ -9,7 +9,6 @@
 #include <stdint.h>
 
 typedef int cmpfunc(const void *, const void *);  // Comparison function.
-typedef int keyfunc(const void *);                // Key function.
 
 // Min/Max Functions.
 
@@ -22,18 +21,15 @@ void *min(void *data, size_t len, size_t size, cmpfunc cmp);
 /* Find the maximum value in an array. */
 void *max(void *data, size_t len, size_t size, cmpfunc cmp);
 
-/* Find the minimum value in an array when given a key function. */
-void *min_k(void *data, size_t len, size_t size, keyfunc key);
-
-/* Find the maximum value in an array when given a key function. */
-void *max_k(void *data, size_t len, size_t size, keyfunc key);
-
 // Non-inplace Sorting Algorithms.
 
 /* Merge sort algorithm (Not inplace). */
 void *mergesort(const void *data, size_t len, size_t size, cmpfunc cmp);
 
 // Inplace Sorting Algorithms.
+
+/* Merge sort algorithm inplace (uses an additional memcopy operation). */
+void imergesort(void *data, size_t len, size_t size, cmpfunc cmp);
 
 /* Bubble sort algorithm. */
 void bubblesort(void *data, size_t len, size_t size, cmpfunc cmp);

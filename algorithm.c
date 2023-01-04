@@ -34,7 +34,15 @@ void *max(void *data, size_t len, size_t size, cmpfunc cmp) {
     return max_val;
 }
 
-void *min_k(void *data, size_t len, size_t size, keyfunc key) {
+/* The min and max with key functions are more useful for algorithms
+   such as radix and counting sort which are not comparative in nature.
+   Although they haven't been added yet, there are plans to add them
+   in the future. */
+
+typedef int64_t keyfunc(const void *);  // Key function.
+
+/* Max function with key instead of comparison. */
+static void *min_k(void *data, size_t len, size_t size, keyfunc key) {
     size_t i;
     void *tmp, *min_val;
     min_val = ((char *) data);  // Assume the first item in the array is the minimum.
@@ -45,7 +53,8 @@ void *min_k(void *data, size_t len, size_t size, keyfunc key) {
     return min_val;
 }
 
-void *max_k(void *data, size_t len, size_t size, keyfunc key) {
+/* Min function with key instead of comparison. */
+static void *max_k(void *data, size_t len, size_t size, keyfunc key) {
     size_t i;
     void *tmp, *max_val;
     max_val = ((char *) data);  // Assume the first item in the array is the maximum.
@@ -131,6 +140,14 @@ void *mergesort(const void *data, size_t len, size_t size, cmpfunc cmp) {
     left = mergesort(left, llen, size, cmp);
     right = mergesort(right, rlen, size, cmp);
     return merge(left, llen, right, rlen, size, cmp);
+}
+
+void imergesort(void *data, size_t len, size_t size, cmpfunc cmp) {
+    void *tmp = mergesort(data, len, size, cmp);
+    /* Copy the result of the original mergesort
+       back into the original array. */
+    memcpy(data, tmp, len * size);
+    free(tmp);
 }
 
 void bubblesort(void *data, size_t len, size_t size, cmpfunc cmp) {
@@ -421,9 +438,6 @@ CMPFUNC_INIT(cmpu, unsigned int);
 CMPFUNC_INIT(cmpul, unsigned long);
 CMPFUNC_INIT(cmpull, unsigned long long);
 
-/* It might be worth redefining a key function to return
-   a 64-bit integer to allow for all types to work. */
-
-int keyi(const void *x) {
-    return *(int *) x;
+static int64_t keyi(const void *x) {
+    return *(int64_t *) x;
 }
