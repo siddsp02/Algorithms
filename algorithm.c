@@ -34,6 +34,45 @@ void *max(void *data, size_t len, size_t size, cmpfunc cmp) {
     return max_val;
 }
 
+void shuffle(void *data, size_t len, size_t size) {
+    int i, p, q;
+    void *a, *b, *tmp;
+    tmp = malloc(size);
+    for (i = 0; i < len; ++i) {
+        p = rand() % len;
+        q = rand() % len;
+        a = ((char *) data) + p * size;
+        b = ((char *) data) + q * size;
+        VOIDSWAP(tmp, a, b, size);
+    }
+    free(tmp);
+}
+
+void reverse(void *data, size_t len, size_t size) {
+    size_t i;
+    void *tmp, *a, *b;
+    tmp = malloc(size);
+    for (i = 0; i < len / 2; ++i) {
+        a = ((char *) data) + i * size;
+        b = ((char *) data) + (len - i - 1) * size;
+        VOIDSWAP(tmp, a, b, size);
+    }
+    free(tmp);
+}
+
+bool issorted(void *data, size_t len, size_t size, cmpfunc cmp) {
+    size_t i;
+    void *a, *b;
+    for (i = 0; i < len - 1; ++i) {
+        a = ((char *) data) + i * size;
+        b = ((char *) data) + (i + 1) * size;
+        if (cmp(a, b) > 0)
+            return false;
+    }
+    return true;
+}
+
+# if 0
 /* The min and max with key functions are more useful for algorithms
    such as radix and counting sort which are not comparative in nature.
    Although they haven't been added yet, there are plans to add them
@@ -64,6 +103,7 @@ static void *max_k(void *data, size_t len, size_t size, keyfunc key) {
     }
     return max_val;
 }
+#endif
 
 static void *merge(void *left, size_t llen, void *right, size_t rlen, size_t size, cmpfunc cmp) {
     /* The code below was partially borrowed from https://youtu.be/4VqmGXwpLqc
@@ -241,6 +281,11 @@ static void _quicksort(void *data, size_t len, size_t size, cmpfunc cmp, int lo,
 
 void quicksort(void *data, size_t len, size_t size, cmpfunc cmp) {
     _quicksort(data, len, size, cmp, 0, len - 1);
+}
+
+void bogosort(void *data, size_t len, size_t size, cmpfunc cmp) {
+    while (!issorted(data, len, size, cmp))
+        shuffle(data, len, size);
 }
 
 // Binary Heap Implementation.
@@ -437,7 +482,3 @@ CMPFUNC_INIT(cmpus, unsigned short);
 CMPFUNC_INIT(cmpu, unsigned int);
 CMPFUNC_INIT(cmpul, unsigned long);
 CMPFUNC_INIT(cmpull, unsigned long long);
-
-static int64_t keyi(const void *x) {
-    return *(int64_t *) x;
-}

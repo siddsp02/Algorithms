@@ -22,6 +22,9 @@
 
 #define min(data, len) min(data, len, sizeof(data[0]), GETCMP(data[0]))
 #define max(data, len) max(data, len, sizeof(data[0]), GETCMP(data[0]))
+#define shuffle(data, len) shuffle(data, len, sizeof(data[0]))
+#define reverse(data, len) reverse(data, len, sizeof(data[0]))
+#define issorted(data, len) issorted(data, len, sizeof(data[0]), GETCMP[data[0]])
 
 #define mergesort(data, len) mergesort(data, len, sizeof(data[0]), GETCMP(data[0]))
 
@@ -30,6 +33,7 @@
 #define bubblesort(data, len) bubblesort(data, len, sizeof(data[0]), GETCMP(data[0]))
 #define insertsort(data, len) insertsort(data, len, sizeof(data[0], GETCMP(data[0])))
 #define selectsort(data, len) selectsort(data, len, sizeof(data[0]), GETCMP(data[0]))
+#define bogosort(data, len) bogosort(data, len, sizeof(data[0]), GETCMP(data[0]))
 
 #define siftup(data, len, start, end) siftup(data, len, sizeof(data[0]), GETCMP(data[0]), start, end)
 #define siftdown(data, len, start, end) siftdown(data, len, sizeof(data[0]), GETCMP(data[0]), start, end)

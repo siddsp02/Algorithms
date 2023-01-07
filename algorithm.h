@@ -21,6 +21,15 @@ void *min(void *data, size_t len, size_t size, cmpfunc cmp);
 /* Find the maximum value in an array. */
 void *max(void *data, size_t len, size_t size, cmpfunc cmp);
 
+/* Shuffles the items in an array. */
+void shuffle(void *data, size_t len, size_t size);
+
+/* Reverses the items in an array. */
+void reverse(void *data, size_t len, size_t size);
+
+/* Checks if an array is sorted. */
+bool issorted(void *data, size_t len, size_t size, cmpfunc cmp);
+
 // Non-inplace Sorting Algorithms.
 
 /* Merge sort algorithm (Not inplace). */
@@ -42,6 +51,9 @@ void insertsort(void *data, size_t len, size_t size, cmpfunc cmp);
 
 /* Quick sort algorithm. */
 void quicksort(void *data, size_t len, size_t size, cmpfunc cmp);
+
+/* Don't use this. */
+void bogosort(void *data, size_t len, size_t size, cmpfunc cmp);
 
 // Binary Heap Algorithms.
 
@@ -111,7 +123,4 @@ int cmpul(const void *a, const void *b);
 
 /* Compare unsigned long long. */
 int cmpull(const void *a, const void *b);
-
-/* Integer key function. */
-int keyi(const void *a);
 #endif  // ALGORITHM_H
