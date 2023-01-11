@@ -24,7 +24,7 @@
 #define max(data, len) max(data, len, sizeof(data[0]), GETCMP(data[0]))
 #define shuffle(data, len) shuffle(data, len, sizeof(data[0]))
 #define reverse(data, len) reverse(data, len, sizeof(data[0]))
-#define issorted(data, len) issorted(data, len, sizeof(data[0]), GETCMP[data[0]])
+#define issorted(data, len) issorted(data, len, sizeof(data[0]), GETCMP(data[0]))
 
 #define mergesort(data, len) mergesort(data, len, sizeof(data[0]), GETCMP(data[0]))
 
